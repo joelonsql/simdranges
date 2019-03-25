@@ -241,7 +241,7 @@ llc -O3 main.ll
 
 `main.s`
 
-MacBook Pro 2,6 GHz Intel Core i7 (AVX2):
+AVX2:
 
 ```asm
 	vmovd	%edi, %xmm0
@@ -259,13 +259,25 @@ MacBook Pro 2,6 GHz Intel Core i7 (AVX2):
 	retq
 ```
 
+AVX-512:
+
+```asm
+	vpbroadcastb	%edi, %xmm0
+	vpcmpnltub	.LCPI2_0(%rip), %xmm0, %k1
+	vpcmpleub	.LCPI2_1(%rip), %xmm0, %k0 {%k1}
+	xorl	%eax, %eax
+	ktestw	%k0, %k0
+	setne	%al
+	retq
+```
+
 ```sh
-clang -O3 main.s && ./a.out 123 10000000
+clang -march=native -O3 main.s && ./a.out 123 100000000
 
 MacBook Pro 2,6 GHz Intel Core i7 (AVX2):
-
 Compiler.............: 861524 ms
 Hand-crafted LLVMIR..: 518396 ms (-0.398280)
 ```
 
 39% speed-up! Human victory!
+
