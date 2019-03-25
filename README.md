@@ -239,54 +239,11 @@ Compile LLVMIR to assembly:
 llc -O3 main.ll
 ```
 
-`main.s:`
+`main.s`
+
+MacBook Pro 2,6 GHz Intel Core i7 (AVX2):
 
 ```asm
-	.p2align	4               ## -- Begin function ranges2
-LCPI3_0:
-	.byte	3                       ## 0x3
-	.byte	11                      ## 0xb
-	.byte	19                      ## 0x13
-	.byte	22                      ## 0x16
-	.byte	31                      ## 0x1f
-	.byte	47                      ## 0x2f
-	.byte	59                      ## 0x3b
-	.byte	68                      ## 0x44
-	.byte	84                      ## 0x54
-	.byte	95                      ## 0x5f
-	.byte	99                      ## 0x63
-	.byte	124                     ## 0x7c
-	.byte	142                     ## 0x8e
-	.byte	189                     ## 0xbd
-	.byte	211                     ## 0xd3
-	.byte	245                     ## 0xf5
-LCPI3_1:
-	.byte	8                       ## 0x8
-	.byte	17                      ## 0x11
-	.byte	21                      ## 0x15
-	.byte	29                      ## 0x1d
-	.byte	33                      ## 0x21
-	.byte	51                      ## 0x33
-	.byte	61                      ## 0x3d
-	.byte	81                      ## 0x51
-	.byte	93                      ## 0x5d
-	.byte	97                      ## 0x61
-	.byte	117                     ## 0x75
-	.byte	133                     ## 0x85
-	.byte	167                     ## 0xa7
-	.byte	199                     ## 0xc7
-	.byte	243                     ## 0xf3
-	.byte	251                     ## 0xfb
-	.section	__TEXT,__text,regular,pure_instructions
-	.p2align	4, 0x90
-_ranges2:                               ## @ranges2
-	.cfi_startproc
-## %bb.0:
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset %rbp, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register %rbp
 	vmovd	%edi, %xmm0
 	vpbroadcastb	%xmm0, %xmm0
 	vpmaxub	LCPI3_0(%rip), %xmm0, %xmm1
@@ -300,15 +257,15 @@ _ranges2:                               ## @ranges2
 	setne	%al
 	popq	%rbp
 	retq
-	.cfi_endproc
-                                        ## -- End function
 ```
 
 ```sh
 clang -O3 main.s && ./a.out 123 10000000
 
-sum1=6564478 t1=213407480
-sum2=6564478 t2=174426207 -0.182661
+MacBook Pro 2,6 GHz Intel Core i7 (AVX2):
+
+Compiler.............: 861524 ms
+Hand-crafted LLVMIR..: 518396 ms (-0.398280)
 ```
 
-18% speed-up! Victory!
+39% speed-up! Human victory!

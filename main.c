@@ -1,22 +1,10 @@
 #include <stdio.h>
-#include <mach/mach_time.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 
-static uint64_t freq_num = 0;
-static uint64_t freq_denom = 0;
-
-void init_clock_frequency()
-{
-  mach_timebase_info_data_t tb;
-
-  if (mach_timebase_info(&tb) == KERN_SUCCESS && tb.denom != 0)
-  {
-    freq_num = (uint64_t)tb.numer;
-    freq_denom = (uint64_t)tb.denom;
-  }
-}
 static int
 ranges(uint8_t x)
 {
@@ -73,28 +61,40 @@ ranges2(uint8_t x)
 
 int main(int argc, char **argv)
 {
-  init_clock_frequency();
   unsigned int seed = (unsigned int)atoi(argv[1]);
   int iters = atoi(argv[2]);
-  srand(seed);
-  int sum1 = 0;
-  int sum2 = 0;
+  int chksum1 = 0;
+  int chksum2 = 0;
   uint64_t t1 = 0;
   uint64_t t2 = 0;
-  uint64_t t0 = 0;
+  struct timeval now, endtime;
+
+  srand(seed);
+  gettimeofday(&now, NULL);
   for (int i = 0; i < iters; i++)
   {
     uint8_t x = rand() % 256;
-
-    t0 = mach_absolute_time();
-    sum1 += ranges(x);
-    t1 += mach_absolute_time() - t0;
-
-    t0 = mach_absolute_time();
-    sum2 += ranges2(x);
-    t2 += mach_absolute_time() - t0;
+    chksum1 += ranges(x);
   }
-  printf("sum1=%d t1=%llu\n", sum1, t1);
-  printf("sum2=%d t2=%llu %f\n", sum2, t2, (double)t2 / (double)t1 - 1.0);
+  gettimeofday(&endtime, NULL);
+  t1 = (endtime.tv_sec * 1000000 + endtime.tv_usec) - (now.tv_sec * 1000000 + now.tv_usec);
+
+  srand(seed);
+  gettimeofday(&now, NULL);
+  for (int i = 0; i < iters; i++)
+  {
+    uint8_t x = rand() % 256;
+    chksum2 += ranges2(x);
+  }
+  gettimeofday(&endtime, NULL);
+  t2 = (endtime.tv_sec * 1000000 + endtime.tv_usec) - (now.tv_sec * 1000000 + now.tv_usec);
+
+  if (chksum1 != chksum2)
+  {
+    printf("%d != %d", chksum1, chksum2);
+    //    exit(0);
+  }
+  printf("Compiler.............: %llu ms\n", t1);
+  printf("Hand-crafted LLVMIR..: %llu ms (%f)\n", t2, (double)t2 / (double)t1 - 1.0);
   return 0;
 }

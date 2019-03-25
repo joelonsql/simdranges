@@ -3,91 +3,121 @@ source_filename = "main.c"
 target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx10.14.0"
 
-%struct.mach_timebase_info = type { i32, i32 }
+%struct.timeval = type { i64, i32 }
 
-@.str = private unnamed_addr constant [17 x i8] c"sum1=%d t1=%llu\0A\00", align 1
-@.str.1 = private unnamed_addr constant [20 x i8] c"sum2=%d t2=%llu %f\0A\00", align 1
+@.str = private unnamed_addr constant [9 x i8] c"%d != %d\00", align 1
+@.str.1 = private unnamed_addr constant [32 x i8] c"Compiler.............: %llu ms\0A\00", align 1
+@.str.2 = private unnamed_addr constant [37 x i8] c"Hand-crafted LLVMIR..: %llu ms (%f)\0A\00", align 1
 
 ; Function Attrs: noinline nounwind ssp uwtable
-define void @init_clock_frequency() local_unnamed_addr #0 {
-  %1 = alloca %struct.mach_timebase_info, align 4
-  %2 = bitcast %struct.mach_timebase_info* %1 to i8*
-  call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %2) #6
-  %3 = call i32 @mach_timebase_info(%struct.mach_timebase_info* nonnull %1) #6
-  call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %2) #6
-  ret void
+define i32 @main(i32, i8** nocapture readonly) local_unnamed_addr #0 {
+  %3 = alloca %struct.timeval, align 8
+  %4 = alloca %struct.timeval, align 8
+  %5 = getelementptr inbounds i8*, i8** %1, i64 1
+  %6 = load i8*, i8** %5, align 8, !tbaa !3
+  %7 = tail call i32 @atoi(i8* %6)
+  %8 = getelementptr inbounds i8*, i8** %1, i64 2
+  %9 = load i8*, i8** %8, align 8, !tbaa !3
+  %10 = tail call i32 @atoi(i8* %9)
+  %11 = bitcast %struct.timeval* %3 to i8*
+  call void @llvm.lifetime.start.p0i8(i64 16, i8* nonnull %11) #6
+  %12 = bitcast %struct.timeval* %4 to i8*
+  call void @llvm.lifetime.start.p0i8(i64 16, i8* nonnull %12) #6
+  tail call void @srand(i32 %7) #6
+  %13 = call i32 @gettimeofday(%struct.timeval* nonnull %3, i8* null)
+  %14 = icmp sgt i32 %10, 0
+  br i1 %14, label %33, label %15
+
+; <label>:15:                                     ; preds = %33, %2
+  %16 = phi i32 [ 0, %2 ], [ %39, %33 ]
+  %17 = call i32 @gettimeofday(%struct.timeval* nonnull %4, i8* null)
+  %18 = getelementptr inbounds %struct.timeval, %struct.timeval* %4, i64 0, i32 0
+  %19 = load i64, i64* %18, align 8, !tbaa !7
+  %20 = getelementptr inbounds %struct.timeval, %struct.timeval* %4, i64 0, i32 1
+  %21 = load i32, i32* %20, align 8, !tbaa !11
+  %22 = sext i32 %21 to i64
+  %23 = getelementptr inbounds %struct.timeval, %struct.timeval* %3, i64 0, i32 0
+  %24 = load i64, i64* %23, align 8, !tbaa !7
+  %25 = getelementptr inbounds %struct.timeval, %struct.timeval* %3, i64 0, i32 1
+  %26 = load i32, i32* %25, align 8, !tbaa !11
+  %27 = sext i32 %26 to i64
+  %28 = sub i64 %19, %24
+  %29 = mul i64 %28, 1000000
+  %30 = sub nsw i64 %22, %27
+  %31 = add i64 %30, %29
+  tail call void @srand(i32 %7) #6
+  %32 = call i32 @gettimeofday(%struct.timeval* nonnull %3, i8* null)
+  br i1 %14, label %56, label %42
+
+; <label>:33:                                     ; preds = %2, %33
+  %34 = phi i32 [ %39, %33 ], [ 0, %2 ]
+  %35 = phi i32 [ %40, %33 ], [ 0, %2 ]
+  %36 = tail call i32 @rand() #6
+  %37 = trunc i32 %36 to i8
+  %38 = tail call fastcc i32 @ranges(i8 zeroext %37)
+  %39 = add nsw i32 %38, %34
+  %40 = add nuw nsw i32 %35, 1
+  %41 = icmp eq i32 %40, %10
+  br i1 %41, label %15, label %33
+
+; <label>:42:                                     ; preds = %56, %15
+  %43 = phi i32 [ 0, %15 ], [ %62, %56 ]
+  %44 = call i32 @gettimeofday(%struct.timeval* nonnull %4, i8* null)
+  %45 = load i64, i64* %18, align 8, !tbaa !7
+  %46 = load i32, i32* %20, align 8, !tbaa !11
+  %47 = sext i32 %46 to i64
+  %48 = load i64, i64* %23, align 8, !tbaa !7
+  %49 = load i32, i32* %25, align 8, !tbaa !11
+  %50 = sext i32 %49 to i64
+  %51 = sub i64 %45, %48
+  %52 = mul i64 %51, 1000000
+  %53 = sub nsw i64 %47, %50
+  %54 = add i64 %53, %52
+  %55 = icmp eq i32 %16, %43
+  br i1 %55, label %67, label %65
+
+; <label>:56:                                     ; preds = %15, %56
+  %57 = phi i32 [ %63, %56 ], [ 0, %15 ]
+  %58 = phi i32 [ %62, %56 ], [ 0, %15 ]
+  %59 = tail call i32 @rand() #6
+  %60 = trunc i32 %59 to i8
+  %61 = tail call fastcc i32 @ranges2(i8 zeroext %60)
+  %62 = add nsw i32 %61, %58
+  %63 = add nuw nsw i32 %57, 1
+  %64 = icmp eq i32 %63, %10
+  br i1 %64, label %42, label %56
+
+; <label>:65:                                     ; preds = %42
+  %66 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str, i64 0, i64 0), i32 %16, i32 %43)
+  br label %67
+
+; <label>:67:                                     ; preds = %42, %65
+  %68 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([32 x i8], [32 x i8]* @.str.1, i64 0, i64 0), i64 %31)
+  %69 = uitofp i64 %54 to double
+  %70 = uitofp i64 %31 to double
+  %71 = fdiv double %69, %70
+  %72 = fadd double %71, -1.000000e+00
+  %73 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([37 x i8], [37 x i8]* @.str.2, i64 0, i64 0), i64 %54, double %72)
+  call void @llvm.lifetime.end.p0i8(i64 16, i8* nonnull %12) #6
+  call void @llvm.lifetime.end.p0i8(i64 16, i8* nonnull %11) #6
+  ret i32 0
 }
 
 ; Function Attrs: argmemonly nounwind
 declare void @llvm.lifetime.start.p0i8(i64, i8* nocapture) #1
 
-declare i32 @mach_timebase_info(%struct.mach_timebase_info*) local_unnamed_addr #2
-
-; Function Attrs: argmemonly nounwind
-declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #1
-
-; Function Attrs: noinline nounwind ssp uwtable
-define i32 @main(i32, i8** nocapture readonly) local_unnamed_addr #0 {
-  tail call void @init_clock_frequency()
-  %3 = getelementptr inbounds i8*, i8** %1, i64 1
-  %4 = load i8*, i8** %3, align 8, !tbaa !3
-  %5 = tail call i32 @atoi(i8* %4)
-  %6 = getelementptr inbounds i8*, i8** %1, i64 2
-  %7 = load i8*, i8** %6, align 8, !tbaa !3
-  %8 = tail call i32 @atoi(i8* %7)
-  tail call void @srand(i32 %5) #6
-  %9 = icmp sgt i32 %8, 0
-  br i1 %9, label %21, label %10
-
-; <label>:10:                                     ; preds = %21, %2
-  %11 = phi i32 [ 0, %2 ], [ %37, %21 ]
-  %12 = phi i64 [ 0, %2 ], [ %34, %21 ]
-  %13 = phi i64 [ 0, %2 ], [ %40, %21 ]
-  %14 = phi i32 [ 0, %2 ], [ %31, %21 ]
-  %15 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @.str, i64 0, i64 0), i32 %14, i64 %12)
-  %16 = uitofp i64 %13 to double
-  %17 = uitofp i64 %12 to double
-  %18 = fdiv double %16, %17
-  %19 = fadd double %18, -1.000000e+00
-  %20 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([20 x i8], [20 x i8]* @.str.1, i64 0, i64 0), i32 %11, i64 %13, double %19)
-  ret i32 0
-
-; <label>:21:                                     ; preds = %2, %21
-  %22 = phi i32 [ %31, %21 ], [ 0, %2 ]
-  %23 = phi i32 [ %41, %21 ], [ 0, %2 ]
-  %24 = phi i64 [ %40, %21 ], [ 0, %2 ]
-  %25 = phi i64 [ %34, %21 ], [ 0, %2 ]
-  %26 = phi i32 [ %37, %21 ], [ 0, %2 ]
-  %27 = tail call i32 @rand() #6
-  %28 = trunc i32 %27 to i8
-  %29 = tail call i64 @mach_absolute_time() #6
-  %30 = tail call fastcc i32 @ranges(i8 zeroext %28)
-  %31 = add nsw i32 %30, %22
-  %32 = tail call i64 @mach_absolute_time() #6
-  %33 = sub i64 %25, %29
-  %34 = add i64 %33, %32
-  %35 = tail call i64 @mach_absolute_time() #6
-  %36 = tail call fastcc i32 @ranges2(i8 zeroext %28)
-  %37 = add nsw i32 %36, %26
-  %38 = tail call i64 @mach_absolute_time() #6
-  %39 = sub i64 %24, %35
-  %40 = add i64 %39, %38
-  %41 = add nuw nsw i32 %23, 1
-  %42 = icmp eq i32 %41, %8
-  br i1 %42, label %10, label %21
-}
-
 ; Function Attrs: nounwind readonly
-declare i32 @atoi(i8* nocapture) local_unnamed_addr #3
+declare i32 @atoi(i8* nocapture) local_unnamed_addr #2
 
-declare void @srand(i32) local_unnamed_addr #2
+declare void @srand(i32) local_unnamed_addr #3
 
-declare i32 @rand() local_unnamed_addr #2
+; Function Attrs: nounwind
+declare i32 @gettimeofday(%struct.timeval* nocapture, i8* nocapture) local_unnamed_addr #4
 
-declare i64 @mach_absolute_time() local_unnamed_addr #2
+declare i32 @rand() local_unnamed_addr #3
 
 ; Function Attrs: noinline norecurse nounwind readnone ssp uwtable
-define internal fastcc i32 @ranges(i8 zeroext) unnamed_addr #4 {
+define internal fastcc i32 @ranges(i8 zeroext) unnamed_addr #5 {
   %2 = add i8 %0, -3
   %3 = icmp ult i8 %2, 6
   %4 = add i8 %0, -11
@@ -139,8 +169,11 @@ define internal fastcc i32 @ranges(i8 zeroext) unnamed_addr #4 {
   ret i32 %49
 }
 
+; Function Attrs: argmemonly nounwind
+declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #1
+
 ; Function Attrs: noinline norecurse nounwind readnone ssp uwtable
-define internal fastcc i32 @ranges2(i8 zeroext) unnamed_addr #2 {
+define internal fastcc i32 @ranges2(i8 zeroext) unnamed_addr #5 {
   %q0 = insertelement <16 x i8> undef, i8 %0, i32 0
   %q1 = insertelement <16 x i8> %q0, i8 %0, i32 1
   %q2 = insertelement <16 x i8> %q1, i8 %0, i32 2
@@ -167,14 +200,14 @@ define internal fastcc i32 @ranges2(i8 zeroext) unnamed_addr #2 {
 }
 
 ; Function Attrs: nounwind
-declare i32 @printf(i8* nocapture readonly, ...) local_unnamed_addr #5
+declare i32 @printf(i8* nocapture readonly, ...) local_unnamed_addr #4
 
 attributes #0 = { noinline nounwind ssp uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { argmemonly nounwind }
-attributes #2 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #3 = { nounwind readonly "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #4 = { noinline norecurse nounwind readnone ssp uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #5 = { nounwind "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #2 = { nounwind readonly "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #3 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nounwind "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #5 = { noinline norecurse nounwind readnone ssp uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="skylake" "target-features"="+adx,+aes,+avx,+avx2,+bmi,+bmi2,+clflushopt,+cmov,+cx16,+f16c,+fma,+fsgsbase,+fxsr,+invpcid,+lzcnt,+mmx,+movbe,+mpx,+pclmul,+popcnt,+prfchw,+rdrnd,+rdseed,+rtm,+sahf,+sgx,+sse,+sse2,+sse3,+sse4.1,+sse4.2,+ssse3,+x87,+xsave,+xsavec,+xsaveopt,+xsaves,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,-cldemote,-clwb,-clzero,-fma4,-gfni,-lwp,-movdir64b,-movdiri,-mwaitx,-pconfig,-pku,-prefetchwt1,-ptwrite,-rdpid,-sha,-shstk,-sse4a,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #6 = { nounwind }
 
 !llvm.module.flags = !{!0, !1}
@@ -187,3 +220,8 @@ attributes #6 = { nounwind }
 !4 = !{!"any pointer", !5, i64 0}
 !5 = !{!"omnipotent char", !6, i64 0}
 !6 = !{!"Simple C/C++ TBAA"}
+!7 = !{!8, !9, i64 0}
+!8 = !{!"timeval", !9, i64 0, !10, i64 8}
+!9 = !{!"long", !5, i64 0}
+!10 = !{!"int", !5, i64 0}
+!11 = !{!8, !10, i64 8}
