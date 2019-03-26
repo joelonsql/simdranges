@@ -30,7 +30,7 @@ _main:                                  ## @main
 	pushq	%r13
 	pushq	%r12
 	pushq	%rbx
-	subq	$40, %rsp
+	subq	$56, %rsp
 	.cfi_offset %rbx, -56
 	.cfi_offset %r12, -48
 	.cfi_offset %r13, -40
@@ -53,13 +53,13 @@ _main:                                  ## @main
 	movl	$0, %r15d
 	testl	%r13d, %r13d
 	jle	LBB0_3
-## %bb.1:                               ## %.preheader1
+## %bb.1:
 	xorl	%r15d, %r15d
 	movl	%r13d, %ebx
 	.p2align	4, 0x90
 LBB0_2:                                 ## =>This Inner Loop Header: Depth=1
 	callq	_rand
-	movzbl	%al, %edi
+	movzwl	%ax, %edi
 	callq	_ranges
 	addl	%eax, %r15d
 	addl	$-1, %ebx
@@ -68,12 +68,11 @@ LBB0_3:
 	leaq	-64(%rbp), %rdi
 	xorl	%esi, %esi
 	callq	_gettimeofday
-	movq	-64(%rbp), %rax
+	movq	-64(%rbp), %rbx
 	movslq	-56(%rbp), %r12
-	movslq	-72(%rbp), %rcx
-	subq	%rcx, %r12
-	subq	-80(%rbp), %rax
-	imulq	$1000000, %rax, %rbx    ## imm = 0xF4240
+	movslq	-72(%rbp), %rax
+	movq	%rax, -88(%rbp)         ## 8-byte Spill
+	subq	-80(%rbp), %rbx
 	movl	-44(%rbp), %edi         ## 4-byte Reload
 	callq	_srand
 	leaq	-80(%rbp), %rdi
@@ -81,21 +80,26 @@ LBB0_3:
 	callq	_gettimeofday
 	testl	%r13d, %r13d
 	jle	LBB0_6
-## %bb.4:                               ## %.preheader
+## %bb.4:
 	xorl	%r14d, %r14d
 	.p2align	4, 0x90
 LBB0_5:                                 ## =>This Inner Loop Header: Depth=1
 	callq	_rand
-	movzbl	%al, %edi
+	movzwl	%ax, %edi
 	callq	_ranges2
 	addl	%eax, %r14d
 	addl	$-1, %r13d
 	jne	LBB0_5
 LBB0_6:
-	addq	%rbx, %r12
 	leaq	-64(%rbp), %rdi
 	xorl	%esi, %esi
 	callq	_gettimeofday
+	cmpl	%r14d, %r15d
+	jne	LBB0_8
+## %bb.7:
+	imulq	$1000000, %rbx, %rax    ## imm = 0xF4240
+	subq	-88(%rbp), %r12         ## 8-byte Folded Reload
+	addq	%rax, %r12
 	movq	-64(%rbp), %rax
 	movslq	-56(%rbp), %rcx
 	movslq	-72(%rbp), %rdx
@@ -103,15 +107,6 @@ LBB0_6:
 	subq	-80(%rbp), %rax
 	imulq	$1000000, %rax, %rbx    ## imm = 0xF4240
 	addq	%rcx, %rbx
-	cmpl	%r14d, %r15d
-	je	LBB0_8
-## %bb.7:
-	leaq	L_.str(%rip), %rdi
-	xorl	%eax, %eax
-	movl	%r15d, %esi
-	movl	%r14d, %edx
-	callq	_printf
-LBB0_8:
 	leaq	L_.str.1(%rip), %rdi
 	xorl	%eax, %eax
 	movq	%r12, %rsi
@@ -133,7 +128,7 @@ LBB0_8:
 	movq	%rbx, %rsi
 	callq	_printf
 	xorl	%eax, %eax
-	addq	$40, %rsp
+	addq	$56, %rsp
 	popq	%rbx
 	popq	%r12
 	popq	%r13
@@ -141,6 +136,14 @@ LBB0_8:
 	popq	%r15
 	popq	%rbp
 	retq
+LBB0_8:
+	leaq	L_.str(%rip), %rdi
+	xorl	%eax, %eax
+	movl	%r15d, %esi
+	movl	%r14d, %edx
+	callq	_printf
+	xorl	%edi, %edi
+	callq	_exit
 	.cfi_endproc
                                         ## -- End function
 	.p2align	4, 0x90         ## -- Begin function ranges
@@ -152,81 +155,83 @@ _ranges:                                ## @ranges
 	.cfi_offset %rbp, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register %rbp
-	movl	%edi, %eax
-	addb	$-3, %al
-	cmpb	$6, %al
+                                        ## kill: def $edi killed $edi def $rdi
+	leal	-300(%rdi), %eax
+	movzwl	%ax, %eax
+	cmpl	$501, %eax              ## imm = 0x1F5
 	setb	%al
-	movl	%edi, %ecx
-	addb	$-11, %cl
-	cmpb	$7, %cl
+	leal	-1100(%rdi), %ecx
+	movzwl	%cx, %ecx
+	cmpl	$601, %ecx              ## imm = 0x259
 	setb	%cl
 	orb	%al, %cl
-	movl	%edi, %eax
-	addb	$-19, %al
-	cmpb	$3, %al
+	leal	-1900(%rdi), %eax
+	movzwl	%ax, %eax
+	cmpl	$201, %eax
 	setb	%al
-	movl	%edi, %edx
-	addb	$-22, %dl
-	cmpb	$8, %dl
+	leal	-2200(%rdi), %edx
+	movzwl	%dx, %edx
+	cmpl	$701, %edx              ## imm = 0x2BD
 	setb	%dl
 	orb	%al, %dl
 	orb	%cl, %dl
-	movl	%edi, %eax
-	addb	$-31, %al
-	cmpb	$3, %al
+	leal	-3100(%rdi), %eax
+	movzwl	%ax, %eax
+	cmpl	$201, %eax
 	setb	%al
-	movl	%edi, %ecx
-	addb	$-47, %cl
-	cmpb	$5, %cl
+	leal	-4700(%rdi), %ecx
+	movzwl	%cx, %ecx
+	cmpl	$401, %ecx              ## imm = 0x191
 	setb	%cl
 	orb	%al, %cl
-	movl	%edi, %eax
-	addb	$-59, %al
-	cmpb	$3, %al
+	leal	-5900(%rdi), %eax
+	movzwl	%ax, %eax
+	cmpl	$201, %eax
 	setb	%al
 	orb	%cl, %al
 	orb	%dl, %al
-	movl	%edi, %ecx
-	addb	$-68, %cl
-	cmpb	$14, %cl
+	leal	-6800(%rdi), %ecx
+	movzwl	%cx, %ecx
+	cmpl	$1301, %ecx             ## imm = 0x515
 	setb	%cl
-	movl	%edi, %edx
-	addb	$-84, %dl
-	cmpb	$10, %dl
+	leal	-8400(%rdi), %edx
+	movzwl	%dx, %edx
+	cmpl	$901, %edx              ## imm = 0x385
 	setb	%dl
 	orb	%cl, %dl
-	movl	%edi, %ecx
-	addb	$-95, %cl
-	cmpb	$3, %cl
+	leal	-9500(%rdi), %ecx
+	movzwl	%cx, %ecx
+	cmpl	$201, %ecx
 	setb	%cl
 	orb	%dl, %cl
-	movl	%edi, %edx
-	addb	$-99, %dl
-	cmpb	$19, %dl
+	leal	-9900(%rdi), %edx
+	movzwl	%dx, %edx
+	cmpl	$1801, %edx             ## imm = 0x709
 	setb	%dl
 	orb	%cl, %dl
 	orb	%al, %dl
-	movl	%edi, %eax
-	addb	$-124, %al
-	cmpb	$10, %al
+	leal	-12400(%rdi), %eax
+	movzwl	%ax, %eax
+	cmpl	$901, %eax              ## imm = 0x385
 	setb	%al
-	movl	%edi, %ecx
-	addb	$114, %cl
-	cmpb	$26, %cl
+	leal	-14200(%rdi), %ecx
+	movzwl	%cx, %ecx
+	cmpl	$2501, %ecx             ## imm = 0x9C5
 	setb	%cl
 	orb	%al, %cl
-	movl	%edi, %eax
-	addb	$67, %al
-	cmpb	$11, %al
+	leal	-18900(%rdi), %eax
+	movzwl	%ax, %eax
+	cmpl	$1001, %eax             ## imm = 0x3E9
 	setb	%al
 	orb	%cl, %al
-	movl	%edi, %ecx
-	addb	$45, %cl
-	cmpb	$33, %cl
+	leal	-21100(%rdi), %ecx
+	movzwl	%cx, %ecx
+	cmpl	$3201, %ecx             ## imm = 0xC81
 	setb	%cl
 	orb	%al, %cl
-	addb	$11, %dil
-	cmpb	$7, %dil
+	addl	$-24500, %edi           ## imm = 0xA04C
+	movzwl	%di, %eax
+	cmpl	$601, %eax              ## imm = 0x259
 	setb	%al
 	orb	%cl, %al
 	orb	%dl, %al
@@ -236,42 +241,42 @@ _ranges:                                ## @ranges
 	retq
 	.cfi_endproc
                                         ## -- End function
-	.section	__TEXT,__literal16,16byte_literals
-	.p2align	4               ## -- Begin function ranges2
+	.section	__TEXT,__const
+	.p2align	5               ## -- Begin function ranges2
 LCPI2_0:
-	.byte	3                       ## 0x3
-	.byte	11                      ## 0xb
-	.byte	19                      ## 0x13
-	.byte	22                      ## 0x16
-	.byte	31                      ## 0x1f
-	.byte	47                      ## 0x2f
-	.byte	59                      ## 0x3b
-	.byte	68                      ## 0x44
-	.byte	84                      ## 0x54
-	.byte	95                      ## 0x5f
-	.byte	99                      ## 0x63
-	.byte	124                     ## 0x7c
-	.byte	142                     ## 0x8e
-	.byte	189                     ## 0xbd
-	.byte	211                     ## 0xd3
-	.byte	245                     ## 0xf5
+	.short	300                     ## 0x12c
+	.short	1100                    ## 0x44c
+	.short	1900                    ## 0x76c
+	.short	2200                    ## 0x898
+	.short	3100                    ## 0xc1c
+	.short	4700                    ## 0x125c
+	.short	5900                    ## 0x170c
+	.short	6800                    ## 0x1a90
+	.short	8400                    ## 0x20d0
+	.short	9500                    ## 0x251c
+	.short	9900                    ## 0x26ac
+	.short	12400                   ## 0x3070
+	.short	14200                   ## 0x3778
+	.short	18900                   ## 0x49d4
+	.short	21100                   ## 0x526c
+	.short	24500                   ## 0x5fb4
 LCPI2_1:
-	.byte	8                       ## 0x8
-	.byte	17                      ## 0x11
-	.byte	21                      ## 0x15
-	.byte	29                      ## 0x1d
-	.byte	33                      ## 0x21
-	.byte	51                      ## 0x33
-	.byte	61                      ## 0x3d
-	.byte	81                      ## 0x51
-	.byte	93                      ## 0x5d
-	.byte	97                      ## 0x61
-	.byte	117                     ## 0x75
-	.byte	133                     ## 0x85
-	.byte	167                     ## 0xa7
-	.byte	199                     ## 0xc7
-	.byte	243                     ## 0xf3
-	.byte	251                     ## 0xfb
+	.short	800                     ## 0x320
+	.short	1700                    ## 0x6a4
+	.short	2100                    ## 0x834
+	.short	2900                    ## 0xb54
+	.short	3300                    ## 0xce4
+	.short	5100                    ## 0x13ec
+	.short	6100                    ## 0x17d4
+	.short	8100                    ## 0x1fa4
+	.short	9300                    ## 0x2454
+	.short	9700                    ## 0x25e4
+	.short	11700                   ## 0x2db4
+	.short	13300                   ## 0x33f4
+	.short	16700                   ## 0x413c
+	.short	19900                   ## 0x4dbc
+	.short	24300                   ## 0x5eec
+	.short	25100                   ## 0x620c
 	.section	__TEXT,__text,regular,pure_instructions
 	.p2align	4, 0x90
 _ranges2:                               ## @ranges2
@@ -283,23 +288,28 @@ _ranges2:                               ## @ranges2
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register %rbp
 	vmovd	%edi, %xmm0
-	vpbroadcastb	%xmm0, %xmm0
-	vpmaxub	LCPI2_0(%rip), %xmm0, %xmm1
-	vpcmpeqb	%xmm1, %xmm0, %xmm1
-	vpminub	LCPI2_1(%rip), %xmm0, %xmm2
-	vpcmpeqb	%xmm2, %xmm0, %xmm0
+	vpbroadcastw	%xmm0, %ymm0
+	vpmaxuw	LCPI2_0(%rip), %ymm0, %ymm1
+	vpcmpeqw	%ymm1, %ymm0, %ymm1
+	vextracti128	$1, %ymm1, %xmm2
+	vpacksswb	%xmm2, %xmm1, %xmm1
+	vpminuw	LCPI2_1(%rip), %ymm0, %ymm2
+	vpcmpeqw	%ymm2, %ymm0, %ymm0
+	vextracti128	$1, %ymm0, %xmm2
+	vpacksswb	%xmm2, %xmm0, %xmm0
 	vpand	%xmm0, %xmm1, %xmm0
 	vpmovmskb	%xmm0, %ecx
 	xorl	%eax, %eax
 	testw	%cx, %cx
 	setne	%al
 	popq	%rbp
+	vzeroupper
 	retq
 	.cfi_endproc
                                         ## -- End function
 	.section	__TEXT,__cstring,cstring_literals
 L_.str:                                 ## @.str
-	.asciz	"%d != %d"
+	.asciz	"Bug! %d != %d\n"
 
 L_.str.1:                               ## @.str.1
 	.asciz	"Compiler.............: %llu ms\n"
