@@ -279,5 +279,5 @@ Compiler.............: 998832 ms
 Hand-crafted LLVMIR..: 528809 ms (-0.470573)
 ```
 
-39% speed-up! Human victory!
+47% speed-up! Human victory!
 
